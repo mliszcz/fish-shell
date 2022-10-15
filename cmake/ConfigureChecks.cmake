@@ -69,23 +69,23 @@ if(NOT ${CURSES_FOUND})
     pkg_search_module(CURSES REQUIRED ncurses curses)
     set(CURSES_CURSES_LIBRARY ${CURSES_LIBRARIES})
     set(CURSES_LIBRARY ${CURSES_LIBRARIES})
+
+    # Fix undefined reference to tparm on RHEL 6 and potentially others
+    # If curses is found via CMake, it also links against tinfo if it exists. But if we use our
+    # fallback pkg-config logic above, we need to do this manually.
+    find_library(CURSES_TINFO tinfo)
+    if (CURSES_TINFO)
+        set(CURSES_LIBRARY ${CURSES_LIBRARY} ${CURSES_TINFO})
+    else()
+        # on NetBSD, libtinfo has a longer name (libterminfo)
+        find_library(CURSES_TINFO terminfo)
+        if (CURSES_TINFO)
+            set(CURSES_LIBRARY ${CURSES_LIBRARY} ${CURSES_TINFO})
+        endif()
+    endif()
 endif()
 # Set up extra include directories for CheckIncludeFile
 list(APPEND CMAKE_REQUIRED_INCLUDES ${CURSES_INCLUDE_DIRS})
-
-# Fix undefined reference to tparm on RHEL 6 and potentially others
-# If curses is found via CMake, it also links against tinfo if it exists. But if we use our
-# fallback pkg-config logic above, we need to do this manually.
-find_library(CURSES_TINFO tinfo)
-if (CURSES_TINFO)
-    set(CURSES_LIBRARY ${CURSES_LIBRARY} ${CURSES_TINFO})
-else()
-    # on NetBSD, libtinfo has a longer name (libterminfo)
-    find_library(CURSES_TINFO terminfo)
-    if (CURSES_TINFO)
-        set(CURSES_LIBRARY ${CURSES_LIBRARY} ${CURSES_TINFO})
-    endif()
-endif()
 
 # Get threads.
 set(THREADS_PREFER_PTHREAD_FLAG ON)

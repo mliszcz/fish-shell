@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<component type="desktop-application">
+  <id>fish</id>
+  <translation type="gettext">fish</translation>
+  <project_license>LicenseRef-proprietary=https://github.com/fish-shell/fish-shell/blob/master/COPYING</project_license>
+  <metadata_license>LicenseRef-proprietary=https://github.com/fish-shell/fish-shell/blob/master/COPYING</metadata_license>
+  <name>Fish</name>
+  <summary>The user-friendly command line shell.</summary>
+
+  <description>
+    <p>
+    fish is a smart and user-friendly command line shell for macOS, Linux,
+    and the rest of the family. fish includes features like syntax highlighting,
+    autosuggest-as-you-type, and fancy tab completions that just work, with no
+    configuration required.
+    </p>
+  </description>
+
+  <releases>
+    <release date="2022-06-16" version="3.5.0"/>
+    <release date="2022-03-25" version="3.4.1"/>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+  <launchable type="desktop-id">fish.desktop</launchable>
+  <url type="homepage">https://fishshell.com</url>
+  <url type="bugtracker">https://github.com/fish-shell/fish-shell/issues</url>
+  <url type="faq">https://fishshell.com/docs/current/faq.html</url>
+  <url type="help">https://fishshell.com/docs/current/index.html</url>
+
+  <provides>
+    <binary>fish</binary>
+  </provides>
+</component>

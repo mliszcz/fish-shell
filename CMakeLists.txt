@@ -27,6 +27,61 @@ include(cmake/PCRE2.cmake)
 
 include(cmake/Rust.cmake)
 
+# Error out when linking statically, it doesn't work.
+# This can be conditionally enabled only for the purpose of creating an AppImage.
+option(FISH_ALLOW_UNSUPPORTED_STATIC_LINKING "Allow static linking" OFF)
+mark_as_advanced(FORCE FISH_ALLOW_UNSUPPORTED_STATIC_LINKING)
+if (NOT FISH_ALLOW_UNSUPPORTED_STATIC_LINKING AND CMAKE_EXE_LINKER_FLAGS MATCHES ".*-static.*")
+    message(FATAL_ERROR "Fish does not support static linking")
+endif()
+
+# Force colored warnings in Ninja's output, if the compiler has -fdiagnostics-color support.
+# Rationale in https://github.com/ninja-build/ninja/issues/814
+if (CMAKE_GENERATOR STREQUAL "Ninja" AND
+    ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9) OR
+     (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5) OR
+     (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)))
+      add_compile_options(-fdiagnostics-color=always)
+endif()
+
+# Enable a whole bunch of warnings, but turn off:
+# - comment because we use a bunch of those, and they're not really all that harmful.
+# - address, because that occurs for our mkostemp check (weak-linking requires us to compare `&mkostemp == nullptr`).
+add_compile_options(-Wall -Wextra -Wno-comment -Wno-address)
+
+# Get extra C++ files from Rust.
+get_property(FISH_EXTRA_SOURCES TARGET fish-rust PROPERTY fish_extra_cpp_files)
+
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+  add_compile_options(-Wunused-template -Wunused-local-typedef -Wunused-macros)
+endif()
+
+# Disable exception handling.
+add_compile_options(-fno-exceptions)
+
+# Undefine NDEBUG to keep assert() in release builds.
+add_definitions(-UNDEBUG)
+
+# Allow including Rust headers in normal (not bindgen) builds.
+add_definitions(-DINCLUDE_RUST_HEADERS)
+
+# Enable large files on GNU.
+add_definitions(-D_LARGEFILE_SOURCE
+                -D_LARGEFILE64_SOURCE
+                -D_FILE_OFFSET_BITS=64
+                -D_ATFILE_SOURCE)
+
+# Hide the CMake Rules directories in Xcode projects.
+source_group("CMake Rules" REGULAR_EXPRESSION "^$")
+
+# Put source and header files at top level under targets.
+source_group("Source Files" REGULAR_EXPRESSION ".*\\.cpp")
+source_group("Header Files" REGULAR_EXPRESSION ".*\\.h")
+source_group("Builtins" "builtins/")
+
+# Support folders.
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Work around issue where archive-built libs go in the wrong place.
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
